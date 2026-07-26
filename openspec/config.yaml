@@ -1,0 +1,39 @@
+schema: spec-driven
+
+# Project context (shown to AI when creating artifacts)
+context: |
+  项目：寿司日料主题的经营模拟独立游戏（单人 + AI 辅助开发）。
+  详细文档见 docs/：01-游戏设计文档-GDD.md、02-技术架构.md、03-开发路线图.md。
+
+  === 定位 ===
+  「预测需求、对抗浪费」的寿司经营模拟。差异化 Hook = 浪费经济（做多卖不掉就倒掉亏钱）。
+  决策/规划向，而非操作向。
+
+  === 核心循环（贯穿全程）===
+  预测需求(地点+喜好) → 采购食材(成本/保质期) → 生产菜品(产能) → 售卖 → 结算/止损(卖不掉倒掉) → 复盘下一轮。
+  设计原则：每个阶段在同一循环上"叠加新约束层"，而非替换玩法。
+
+  === 阶段进程 ===
+  ①街头摆摊(教学) ②小店+回转传送带(容量占位/食材保质期/随机事件) ③扩张+自动化(厨师/独立座位点单制/服务员) ④多品类厨房(拉面/烧烤) ⑤布局优化(网格摆放/寻路/吞吐效率)。
+
+  === 技术栈 ===
+  引擎 Godot 4.7.1；2D 像素风；GitHub 版本管理；白盒占位美术优先，玩法稳定后再替换正式美术。
+  地基：数据驱动(食材/配方/顾客/事件做成数据资源)；时间模型="一天为一局 + 内部 tick 推进"(决策阶段→模拟阶段→结算)；事件总线(Autoload信号)解耦；模拟层与节点树尽量解耦便于测试。
+
+  === 约定 ===
+  - 编程语言(GDScript vs C#) 与 数据格式(Resource vs JSON) 尚 🔴待定，确认前勿假定。
+  - 不直接创建/修改 Godot 引擎文件(.tscn/.tres/project.godot/.import)，应在编辑器内操作或仅提供步骤；普通 .cs/.gd 脚本不受限。
+  - 提交采用约定式提交；每个 OpenSpec 变更建议对应一个 feature 分支。
+
+  === 开发原则 ===
+  白盒优先，先验证"好不好玩"(关键判断点在 M1 摆摊核心循环)，再堆功能与做正式美术。
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
