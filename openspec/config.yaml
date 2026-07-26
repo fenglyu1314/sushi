@@ -21,7 +21,7 @@ context: |
   地基：数据驱动(食材/配方/顾客/事件做成数据资源)；时间模型="一天为一局 + 内部 tick 推进"(决策阶段→模拟阶段→结算)；事件总线(Autoload信号)解耦；模拟层与节点树尽量解耦便于测试。
 
   === 约定 ===
-  - 编程语言(GDScript vs C#) 与 数据格式(Resource vs JSON) 尚 🔴待定，确认前勿假定。
+  - 编程语言：GDScript（已确认）；数据格式：Godot Resource（已确认）。
   - 不直接创建/修改 Godot 引擎文件(.tscn/.tres/project.godot/.import)，应在编辑器内操作或仅提供步骤；普通 .cs/.gd 脚本不受限。
   - 提交采用约定式提交；每个 OpenSpec 变更建议对应一个 feature 分支。
 
