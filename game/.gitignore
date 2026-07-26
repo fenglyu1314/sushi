@@ -1,0 +1,11 @@
+# Godot 4+ specific ignores
+# 官方模板：带前导斜杠的路径相对于本文件所在目录（game/）
+.godot/
+/android/
+/builds/
+
+# Imported translations (automatically generated from CSV files)
+*.translation
+
+# 本项目导出产物
+/export/
