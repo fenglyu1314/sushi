@@ -1,0 +1,20 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# 导出产物
+*.exe
+*.pck
+*.zip
+*.apk
+*.aab
+
+# 临时文件
+*.tmp
+~*
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
