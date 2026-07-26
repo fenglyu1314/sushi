@@ -11,8 +11,15 @@ config_version=5
 [application]
 
 config/name="sushi"
+run/main_scene="uid://bmfkdxt10mufo"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[autoload]
+
+EventBus="*uid://cmlkootkbchjh"
+DayCycle="*uid://eop1ben82bpm"
+SaveManager="*uid://bvde0v0hats3u"
 
 [display]
 
