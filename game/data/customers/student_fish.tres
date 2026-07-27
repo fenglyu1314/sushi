@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CustomerType" format=3 uid="uid://67kgonuk0rb4"]
+
+[ext_resource type="Script" uid="uid://c1xrlpw4yjjdy" path="res://scripts/data/customer_type.gd" id="1_lgc4q"]
+
+[resource]
+script = ExtResource("1_lgc4q")
+id = &"student_fish"
+display_name = "爱吃鱼的学生"
+preference_tags = {
+&"fish": 2.0,
+&"salmon": 1.0
+}
+appear_weight = 3.0
+metadata/_custom_type_script = "uid://c1xrlpw4yjjdy"

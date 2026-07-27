@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="Ingredient" format=3 uid="uid://cqlus88ktqqnw"]
+
+[ext_resource type="Script" uid="uid://s38ug57ffapa" path="res://scripts/data/ingredient.gd" id="1_j2v2i"]
+
+[resource]
+script = ExtResource("1_j2v2i")
+id = &"nori"
+display_name = "紫菜"
+base_price = 2.0
+unit_amount = 500.0
+category = 1
+metadata/_custom_type_script = "uid://s38ug57ffapa"

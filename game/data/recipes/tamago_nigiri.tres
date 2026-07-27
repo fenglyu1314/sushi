@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="Recipe" format=3 uid="uid://bkgl5y5sy5rto"]
+
+[ext_resource type="Script" uid="uid://7rr7qtqugglu" path="res://scripts/data/recipe_ingredient.gd" id="1_8s3e3"]
+[ext_resource type="Script" uid="uid://drjt3gwwahyj6" path="res://scripts/data/recipe.gd" id="2_imw6v"]
+[ext_resource type="Resource" uid="uid://dhjw5757b0mal" path="res://data/ingredients/tamago.tres" id="2_y7xus"]
+[ext_resource type="Resource" uid="uid://ckfrutra7ut8o" path="res://data/ingredients/rice.tres" id="3_00gfe"]
+[ext_resource type="Resource" uid="uid://cqlus88ktqqnw" path="res://data/ingredients/nori.tres" id="4_x5urh"]
+
+[sub_resource type="Resource" id="Resource_sa7c2"]
+script = ExtResource("1_8s3e3")
+ingredient = ExtResource("2_y7xus")
+amount_per_serving = 25.0
+metadata/_custom_type_script = "uid://7rr7qtqugglu"
+
+[sub_resource type="Resource" id="Resource_y7xus"]
+script = ExtResource("1_8s3e3")
+ingredient = ExtResource("3_00gfe")
+amount_per_serving = 20.0
+metadata/_custom_type_script = "uid://7rr7qtqugglu"
+
+[sub_resource type="Resource" id="Resource_00gfe"]
+script = ExtResource("1_8s3e3")
+ingredient = ExtResource("4_x5urh")
+amount_per_serving = 5.0
+metadata/_custom_type_script = "uid://7rr7qtqugglu"
+
+[resource]
+script = ExtResource("2_imw6v")
+id = &"tamago_nigiri"
+display_name = "玉子握寿司"
+ingredients = Array[ExtResource("1_8s3e3")]([SubResource("Resource_sa7c2"), SubResource("Resource_y7xus"), SubResource("Resource_00gfe")])
+price = 8.0
+flavor_tags = Array[StringName]([&"sweet", &"tamago", &"veggie"])
+metadata/_custom_type_script = "uid://drjt3gwwahyj6"

@@ -1,0 +1,54 @@
+[gd_scene format=3 uid="uid://kgelw5cnqfne"]
+
+[ext_resource type="Script" uid="uid://c71qqeosudrwd" path="res://scripts/core/game_session.gd" id="1_ipu61"]
+[ext_resource type="Script" uid="uid://c55led8dkg1j1" path="res://scripts/ui/game_hud.gd" id="2_ygxny"]
+[ext_resource type="Script" uid="uid://barem1qxtm575" path="res://scripts/ui/decision_panel.gd" id="3_wi4c7"]
+[ext_resource type="Script" uid="uid://lf2ftbb0ehsu" path="res://scripts/ui/simulation_panel.gd" id="4_70vka"]
+[ext_resource type="Script" uid="uid://c60xiv7vb5ibs" path="res://scripts/ui/settlement_panel.gd" id="5_2l77h"]
+
+[node name="MainGame" type="Control" unique_id=1146999652]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GameSession" type="Node" parent="." unique_id=943827613]
+script = ExtResource("1_ipu61")
+
+[node name="GameHUD" type="Control" parent="." unique_id=1998434011]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_ygxny")
+
+[node name="DecisionPanel" type="Control" parent="GameHUD" unique_id=1106915547]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_wi4c7")
+
+[node name="SimulationPanel" type="Control" parent="GameHUD" unique_id=828684217]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("4_70vka")
+
+[node name="SettlementPanel" type="Control" parent="GameHUD" unique_id=1196091726]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5_2l77h")

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CustomerType" format=3 uid="uid://ddnl8xua1yc8h"]
+
+[ext_resource type="Script" uid="uid://c1xrlpw4yjjdy" path="res://scripts/data/customer_type.gd" id="1_kcfsn"]
+
+[resource]
+script = ExtResource("1_kcfsn")
+id = &"student_tuna"
+display_name = "金枪鱼党学生"
+preference_tags = {
+&"fish": 1.0,
+&"tuna": 2.0
+}
+appear_weight = 2.0
+metadata/_custom_type_script = "uid://c1xrlpw4yjjdy"

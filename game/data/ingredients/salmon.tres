@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Ingredient" format=3 uid="uid://5nt63phcnavx"]
+
+[ext_resource type="Script" uid="uid://s38ug57ffapa" path="res://scripts/data/ingredient.gd" id="1_15bk5"]
+
+[resource]
+script = ExtResource("1_15bk5")
+id = &"salmon"
+display_name = "三文鱼"
+base_price = 8.0
+unit_amount = 300.0
+metadata/_custom_type_script = "uid://s38ug57ffapa"

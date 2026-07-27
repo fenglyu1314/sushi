@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CustomerType" format=3 uid="uid://dxvxnjailoide"]
+
+[ext_resource type="Script" uid="uid://c1xrlpw4yjjdy" path="res://scripts/data/customer_type.gd" id="1_i4hy0"]
+
+[resource]
+script = ExtResource("1_i4hy0")
+id = &"student_tuna"
+display_name = "嗜甜学生"
+preference_tags = {
+&"sweet": 2.0,
+&"tamago": 1.0
+}
+appear_weight = 2.0
+metadata/_custom_type_script = "uid://c1xrlpw4yjjdy"

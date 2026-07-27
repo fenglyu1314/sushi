@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Ingredient" format=3 uid="uid://63j3ypi30vd"]
+
+[ext_resource type="Script" uid="uid://s38ug57ffapa" path="res://scripts/data/ingredient.gd" id="1_misfq"]
+
+[resource]
+script = ExtResource("1_misfq")
+id = &"tuna"
+display_name = "金枪鱼"
+base_price = 10.0
+unit_amount = 300.0
+metadata/_custom_type_script = "uid://s38ug57ffapa"
