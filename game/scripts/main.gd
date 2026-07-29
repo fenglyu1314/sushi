@@ -28,7 +28,7 @@ func _on_phase_changed(p: int) -> void:
 
 
 func _on_tick_advanced(t: int) -> void:
-	print("    tick %d / %d" % [t, DayCycle.TICKS_PER_DAY])
+	print("    tick %d / %d" % [t, DayCycle.get_ticks_per_day()])
 
 
 func _on_day_ended(d: int) -> void:

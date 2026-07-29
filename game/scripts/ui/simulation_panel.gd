@@ -206,7 +206,7 @@ func _update_progress() -> void:
 	if _progress_label == null:
 		return
 	var remaining := DayCycle.get_day_remaining()
-	var total := DC.DAY_DURATION_SEC
+	var total := DayCycle.get_day_duration_sec()
 	_progress_label.text = "营业剩余：%.0f / %.0f 秒" % [remaining, total]
 
 

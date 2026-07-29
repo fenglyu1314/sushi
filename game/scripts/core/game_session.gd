@@ -70,7 +70,7 @@ func _on_tick_advanced(tick_index: int) -> void:
 		return
 	if location == null:
 		return
-	sales.process_tick(state, location, tick_index, DC.TICKS_PER_DAY)
+	sales.process_tick(state, location, tick_index, DayCycle.get_ticks_per_day())
 
 
 ## 3.3 进入结算阶段触发日结算（Settlement 内部广播 day_settled）；不改动 DayCycle._settle

@@ -12,11 +12,11 @@ class_name Location
 ## 客群构成：各顾客类型及其权重
 @export var customer_mix: Array[CustomerWeight] = []
 
-## 人流量：一个回合（一天）内到达的顾客总量
+## 人流量：一天内到达的顾客总量
 @export var foot_traffic: int = 0
 
 ## 消费力：作用于售价的营收系数（1.0 = 按原价）
 @export var spending_power: float = 1.0
 
-## 摊位租金（每回合固定成本，结算阶段扣除）
+## 摊位租金（每天固定成本，结算阶段扣除）
 @export var rent: float = 0.0

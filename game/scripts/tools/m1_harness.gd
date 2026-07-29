@@ -83,8 +83,9 @@ func _run_day(state: RunState, day: int, buy_plan: Dictionary, produce_plan: Dic
 
 	# —— 模拟阶段：按 tick 售卖（仅卖货架成品）——
 	var sales := Sales.new(recipes, _rng)
-	for t in range(1, DC.TICKS_PER_DAY + 1):
-		sales.process_tick(state, loc, t, DC.TICKS_PER_DAY)
+	var ticks_per_day := DayCycle.get_ticks_per_day()
+	for t in range(1, ticks_per_day + 1):
+		sales.process_tick(state, loc, t, ticks_per_day)
 
 	# —— 结算阶段 ——
 	var review := Settlement.settle(state, loc)

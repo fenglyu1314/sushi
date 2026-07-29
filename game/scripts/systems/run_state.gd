@@ -54,7 +54,7 @@ func _init_shelf() -> void:
 	shelf.resize(shelf_size * shelf_size)  # resize 以 null 填充
 
 
-## 重置当日统计（每个回合开始调用；现金与库存跨天保留）
+## 重置当日统计（每天开始调用；现金与库存跨天保留）
 func reset_daily_stats() -> void:
 	daily_stats = {
 		"revenue": 0.0,
