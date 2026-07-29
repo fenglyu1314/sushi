@@ -1,3 +1,9 @@
+## Purpose
+
+提供 `SaveManager` Autoload，将日周期状态序列化为 JSON 写入用户存档，支持保存、读取恢复、存在性判断与删除。
+
+## Requirements
+
 ### Requirement: 存档管理作为 Autoload
 系统 SHALL 提供 `SaveManager` Autoload 单例，启动后可通过全局名 `SaveManager` 访问。
 

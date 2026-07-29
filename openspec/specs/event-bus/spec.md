@@ -1,3 +1,9 @@
+## Purpose
+
+提供全局事件总线 Autoload，以信号解耦日周期等各系统间的通信；总线只声明信号，自身不含任何业务逻辑。
+
+## Requirements
+
 ### Requirement: 事件总线作为全局 Autoload 存在
 系统 SHALL 提供 `EventBus` Autoload 单例，启动后任意脚本可通过全局名 `EventBus` 访问，无需实例化。
 

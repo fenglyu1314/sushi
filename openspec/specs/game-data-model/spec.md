@@ -1,3 +1,9 @@
+## Purpose
+
+以 Godot Resource 定义食材、配方、顾客类型、地点四类核心数据模型，以及「食材原料总量 ÷ 每份消耗量」的份数转化模型；数据以 `.tres` 承载，逻辑不硬编码具体内容。
+
+## Requirements
+
 ### Requirement: 食材数据资源
 系统 SHALL 以 `Resource` 定义食材（`Ingredient`），至少包含唯一 id、名称、基础价格、原料总量单位，并区分主料与辅料两类。数据以 `.tres` 承载，逻辑不得硬编码具体食材。
 
