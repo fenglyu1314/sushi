@@ -15,6 +15,10 @@ class_name Recipe
 ## 售价（结算 / 售卖时结合地点消费力计算实际营收）
 @export var price: float = 0.0
 
+## 制作单份耗时（秒）。仅营业阶段的制作队列生效：一份从开始到落出餐台需累计 craft_time 秒。
+## 备货阶段为即时生产（零耗时），忽略本字段。建议：卷类~4s / 握寿司~3s / 刺身~6s，或先统一 4s。
+@export var craft_time: float = 4.0
+
 ## 成品占货架格数（本阶段仅记录，暂不做空间约束）
 @export var shelf_slots: int = 1
 

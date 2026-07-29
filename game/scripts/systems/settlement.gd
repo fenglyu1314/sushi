@@ -12,13 +12,8 @@ static func settle(state: RunState, location: Location) -> Dictionary:
 	if state == null or location == null:
 		return {}
 
-	# 1. 作废未售成品：按沉没成本计当日浪费
-	while not state.finished_sushi.is_empty():
-		var item: Dictionary = state.finished_sushi.pop_back()
-		var rid: StringName = item.get("recipe_id", &"")
-		var cost := float(item.get("cost", 0.0))
-		state.record_waste(rid, cost)
-		EventBus.sushi_discarded.emit(rid, cost)
+	# 1. 结算清算：出餐台与货架剩余成品一律作废（按沉没成本计当日浪费，见 D8）
+	state.settle_waste_all()
 
 	# 2. 扣租金
 	var rent := location.rent

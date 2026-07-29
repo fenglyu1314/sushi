@@ -54,15 +54,15 @@ func process_tick(state: RunState, location: Location, tick_index: int, total_ti
 
 
 func _serve(state: RunState, location: Location, recipe: Recipe) -> void:
-	if state.finished_count(recipe.id) > 0:
-		# 有货成交
-		state.remove_one_finished(recipe.id)
+	if state.shelf_count_of(recipe.id) > 0:
+		# 货架有货成交（出餐台成品不参与售卖）
+		state.remove_one_from_shelf(recipe.id)
 		var revenue := recipe.price * location.spending_power
 		state.cash += revenue
 		state.record_sale(recipe.id, revenue)
 		EventBus.sale_made.emit(recipe.id, revenue)
 	else:
-		# 无货流失：不扣钱、不耗料
+		# 货架无货流失：不扣钱、不耗料（即使出餐台里有也不算）
 		state.record_loss(recipe.id)
 		EventBus.customer_lost.emit(recipe.id)
 

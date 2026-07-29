@@ -38,6 +38,9 @@ func _ready() -> void:
 	state = RunState.new()
 	state.cash = starting_cash
 
+	# 注入运行状态给 DayCycle，作为营业阶段制作时钟的推进目标（2b.1）
+	DayCycle.set_run_state(state)
+
 	location = content.get_location(location_id)
 	if location == null:
 		location = content.get_first_location()
@@ -86,12 +89,50 @@ func request_buy(ingredient_id: StringName, qty: int) -> bool:
 	return Procurement.buy(state, ing, qty, DayCycle.current_phase)
 
 
-## 生产某配方 servings 份；返回实际生产份数
-func request_produce(recipe_id: StringName, servings: int) -> int:
+## 备货阶段即时生产一份该配方到出餐台；成功返回 true（出餐台满 / 料不足 / 非备货阶段则失败）
+func request_produce_one(recipe_id: StringName) -> bool:
+	if DayCycle.current_phase != DC.Phase.DECISION:
+		return false
 	var recipe := _find_recipe(recipe_id)
 	if recipe == null:
-		return 0
-	return Production.produce(state, recipe, servings, DayCycle.current_phase)
+		return false
+	return state.produce_instant(recipe)
+
+
+## 营业阶段把该配方加入制作队列（可重复入队叠加份数）；成功返回 true
+func request_enqueue(recipe_id: StringName) -> bool:
+	if DayCycle.current_phase != DC.Phase.SIMULATION:
+		return false
+	var recipe := _find_recipe(recipe_id)
+	if recipe == null:
+		return false
+	state.enqueue_craft(recipe)
+	return true
+
+
+## 撤销一次入队（从队尾移除一份该配方）
+func request_dequeue(recipe_id: StringName) -> bool:
+	return state.dequeue_craft_last(recipe_id)
+
+
+## 上架：出餐台第 buffer_index 份 → 货架 shelf_index 空格；成功返回 true
+func request_stock(buffer_index: int, shelf_index: int) -> bool:
+	return state.move_buffer_to_shelf(buffer_index, shelf_index)
+
+
+## 出餐台某份拖到垃圾桶：备货=取消退料 / 营业=作废（按当前阶段分流）
+func request_discard_buffer(buffer_index: int) -> bool:
+	return state.discard_from_buffer(buffer_index, _is_refund_phase())
+
+
+## 货架某份拖到垃圾桶：备货=取消退料 / 营业=作废
+func request_discard_shelf(shelf_index: int) -> bool:
+	return state.discard_from_shelf(shelf_index, _is_refund_phase())
+
+
+## 当前是否处于「退料」语义阶段（仅备货阶段返料；开摊后为作废）
+func _is_refund_phase() -> bool:
+	return DayCycle.current_phase == DC.Phase.DECISION
 
 
 ## 开摊：决策阶段 → 模拟阶段
@@ -124,6 +165,58 @@ func get_max_servings(recipe_id: StringName) -> int:
 
 func get_finished_count(recipe_id: StringName) -> int:
 	return state.finished_count(recipe_id)
+
+
+# ===== 成品容器查询（供 UI 渲染出餐台 / 货架 / 队列） =====
+
+func get_buffer_items() -> Array:
+	return state.buffer
+
+
+func get_buffer_capacity() -> int:
+	return state.buffer_capacity
+
+
+func is_buffer_full() -> bool:
+	return state.is_buffer_full()
+
+
+func get_shelf_items() -> Array:
+	return state.shelf
+
+
+func get_shelf_size() -> int:
+	return state.shelf_size
+
+
+func has_empty_shelf_slot() -> bool:
+	return state.has_empty_shelf_slot()
+
+
+func get_shelf_count_of(recipe_id: StringName) -> int:
+	return state.shelf_count_of(recipe_id)
+
+
+func get_queue_counts() -> Dictionary:
+	return state.queue_counts()
+
+
+func get_current_craft_recipe_id() -> StringName:
+	var r := state.current_craft_recipe()
+	return r.id if r != null else &""
+
+
+func get_current_craft_ratio() -> float:
+	return state.current_craft_ratio()
+
+
+func is_crafting_paused() -> bool:
+	return state.crafting_paused
+
+
+func get_recipe_display_name(recipe_id: StringName) -> String:
+	var r := _find_recipe(recipe_id)
+	return r.display_name if r != null else String(recipe_id)
 
 
 # ===== 供 UI 构建行的内容查询 =====

@@ -1,31 +1,24 @@
 extends RefCounted
 class_name Production
-## 生产逻辑（sushi-production）— 模拟层纯逻辑
-## 决策阶段按配方即时生产（无制作时间）：扣减主料/辅料库存 → 成品入列。
-## 份数受库存与辅料上限共同约束，禁止负库存；辅料不足会限制相关配方的可做份数。
+## 生产逻辑（sushi-production）— 模拟层纯逻辑（薄封装）
+## 本轮生产链核心已下沉到 RunState：
+## - 备货阶段即时生产 → RunState.produce_instant(recipe)（受出餐台容量约束）。
+## - 营业阶段单线程制作队列 → RunState.enqueue_craft / advance_crafting。
+## 本类保留 produce() 供既有命令行验证脚本调用：仅在决策阶段按出餐台容量逐份即时生产。
 
 const DayCycleScript = preload("res://scripts/core/day_cycle.gd")
 
 
-## 生产某配方 servings 份。返回实际生产份数（可能因库存/辅料不足而少于请求值）。
-## phase 非决策阶段一律不生产。
+## 备货阶段即时生产 servings 份。返回实际落出餐台份数（受库存/辅料/出餐台容量约束）。
+## 非决策阶段一律不生产。
 static func produce(state: RunState, recipe: Recipe, servings: int, phase: int) -> int:
 	if state == null or recipe == null or servings <= 0:
 		return 0
 	if phase != DayCycleScript.Phase.DECISION:
 		return 0
-	# 受所有所需食材（含辅料）共同约束的最大份数
-	var max_possible := SushiMath.max_servings_for_recipe(recipe, state.ingredient_stock)
-	var actual: int = min(servings, max_possible)
-	if actual <= 0:
-		return 0
-	# 扣减食材（不会产生负库存，因 actual ≤ max_possible）
-	for ri in recipe.ingredients:
-		if ri == null or ri.ingredient == null:
-			continue
-		state.add_stock(ri.ingredient.id, -ri.amount_per_serving * actual)
-	# 成品入列，记录单份沉没成本
-	var cost := recipe.cost_per_serving()
-	for _i in actual:
-		state.add_finished(recipe.id, cost)
-	return actual
+	var made := 0
+	for _i in servings:
+		if not state.produce_instant(recipe):
+			break  # 出餐台满或食材不足
+		made += 1
+	return made

@@ -1,17 +1,21 @@
 extends Control
-## 决策阶段 UI（decision-ui）
-## 绑定 GameSession，展示现金/各食材库存/各配方可做份数；提供采购与生产交互、"开摊"入口。
-## 白盒占位：脚本按内容集动态生成每种食材/配方一行（Label + SpinBox + Button），
-## 用户只需创建一个挂本脚本的 Control 节点，无需手工搭建每一行（符合「加内容不改代码」）。
+## 决策阶段 UI（decision-ui，备货）
+## 绑定 GameSession：展示现金/各食材库存/各配方；提供采购与「即时生产一份到出餐台」交互，
+## 展示出餐台（占用/容量）与货架 N×N 格，支持拖放上架（出餐台→货架空格）与取消退料（拖到垃圾桶）。
+## 白盒占位：脚本动态生成每种食材/配方一行，出餐台/货架/垃圾桶用纯色块 + 文字。
 
 const DC = preload("res://scripts/core/day_cycle.gd")
+const PW = preload("res://scripts/ui/production_widgets.gd")
 
 var _session: Node
 var _cash_label: Label
 var _feedback_label: Label
 var _empty_label: Label
+var _buffer_title: Label
+var _buffer_box: HBoxContainer
+var _shelf_grid: GridContainer
 var _ing_rows: Dictionary = {}     # ing_id -> {ing, spin, price}
-var _recipe_rows: Dictionary = {}  # recipe_id -> {recipe, spin, name, produce}
+var _recipe_rows: Dictionary = {}  # recipe_id -> {recipe, name, produce}
 var _built: bool = false
 
 
@@ -20,11 +24,24 @@ func _ready() -> void:
 	_add_background(Color(0.10, 0.14, 0.10, 1.0))  # 决策：暗绿底
 	EventBus.day_started.connect(func(_d): _refresh())
 	EventBus.phase_changed.connect(_on_phase_changed)
+	EventBus.buffer_changed.connect(_on_container_changed)
+	EventBus.shelf_changed.connect(_on_container_changed)
+	EventBus.ingredients_returned.connect(_on_ingredients_returned)
 
 
 func _on_phase_changed(phase: int) -> void:
 	if phase == DC.Phase.DECISION:
 		_refresh()
+
+
+func _on_container_changed() -> void:
+	if DayCycle.current_phase == DC.Phase.DECISION and _built:
+		_refresh()
+
+
+func _on_ingredients_returned(recipe_id: StringName) -> void:
+	if _feedback_label != null:
+		_feedback_label.text = "已退还食材：%s（未记沉没成本）" % _name_of(recipe_id)
 
 
 func _add_background(c: Color) -> void:
@@ -41,26 +58,34 @@ func _resolve_session() -> bool:
 	return _session != null
 
 
-# ===== 4.1 UI 构建（首次刷新时惰性构建，确保 GameSession 已就绪） =====
+func _name_of(recipe_id: StringName) -> String:
+	if _resolve_session():
+		return _session.get_recipe_display_name(recipe_id)
+	return String(recipe_id)
+
+
+# ===== UI 构建（首次刷新时惰性构建，确保 GameSession 已就绪） =====
 
 func _build_ui() -> void:
 	if _built or not _resolve_session():
 		return
 
+	var scroll := ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(scroll)
+
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 6)
-	root.position = Vector2(16, 16)
 	root.custom_minimum_size = Vector2(560, 0)
-	add_child(root)
+	scroll.add_child(root)
 
 	var title := Label.new()
-	title.text = "== 决策阶段：采购 & 生产 =="
+	title.text = "== 决策阶段：采购 & 备货生产 =="
 	root.add_child(title)
 
 	_cash_label = Label.new()
 	root.add_child(_cash_label)
 
-	# 7.4 无内容占位提示
 	_empty_label = Label.new()
 	_empty_label.text = "（未加载到内容资源：请在 res://data 的 ingredients/recipes 目录下创建 .tres）"
 	_empty_label.visible = false
@@ -73,16 +98,38 @@ func _build_ui() -> void:
 	for ing in _session.get_ingredients():
 		root.add_child(_make_ingredient_row(ing))
 
-	# 生产区
+	# 生产区（即时生产：点击立刻产一份到出餐台）
 	var prod_title := Label.new()
-	prod_title.text = "— 生产寿司 —"
+	prod_title.text = "— 备货生产（点击即产一份到出餐台，无耗时）—"
 	root.add_child(prod_title)
 	for recipe in _session.get_recipes():
 		root.add_child(_make_recipe_row(recipe))
 
-	# 4.4 开摊
+	# 出餐台展示区
+	_buffer_title = Label.new()
+	root.add_child(_buffer_title)
+	_buffer_box = HBoxContainer.new()
+	_buffer_box.add_theme_constant_override("separation", 6)
+	root.add_child(_buffer_box)
+
+	# 货架展示区（N×N）
+	var shelf_title := Label.new()
+	shelf_title.text = "— 货架（把出餐台成品拖到空格上架）—"
+	root.add_child(shelf_title)
+	_shelf_grid = GridContainer.new()
+	_shelf_grid.columns = max(1, _session.get_shelf_size())
+	_shelf_grid.add_theme_constant_override("h_separation", 6)
+	_shelf_grid.add_theme_constant_override("v_separation", 6)
+	root.add_child(_shelf_grid)
+
+	# 垃圾桶（备货 = 取消退料）
+	var trash: PW.TrashBin = PW.TrashBin.new()
+	trash.setup(_session, "🗑 垃圾桶（备货=取消退料，返还食材）")
+	root.add_child(trash)
+
+	# 开摊
 	var open_btn := Button.new()
-	open_btn.text = "▶ 开摊（进入模拟）"
+	open_btn.text = "▶ 开摊（进入营业，成品不可再退料）"
 	open_btn.pressed.connect(func(): _session.open_stall())
 	root.add_child(open_btn)
 
@@ -130,14 +177,8 @@ func _make_recipe_row(recipe: Recipe) -> HBoxContainer:
 	row.add_theme_constant_override("separation", 8)
 
 	var name_label := Label.new()
-	name_label.custom_minimum_size = Vector2(300, 0)
+	name_label.custom_minimum_size = Vector2(360, 0)
 	row.add_child(name_label)
-
-	var spin := SpinBox.new()
-	spin.min_value = 1
-	spin.max_value = 999
-	spin.value = 1
-	row.add_child(spin)
 
 	var cost := Label.new()
 	cost.custom_minimum_size = Vector2(120, 0)
@@ -145,16 +186,16 @@ func _make_recipe_row(recipe: Recipe) -> HBoxContainer:
 	row.add_child(cost)
 
 	var produce := Button.new()
-	produce.text = "生产"
+	produce.text = "生产一份"
 	row.add_child(produce)
 
 	produce.pressed.connect(func(): _on_produce(recipe.id))
 
-	_recipe_rows[recipe.id] = {"recipe": recipe, "spin": spin, "name": name_label, "produce": produce}
+	_recipe_rows[recipe.id] = {"recipe": recipe, "name": name_label, "produce": produce}
 	return row
 
 
-# ===== 4.2 采购交互 =====
+# ===== 采购交互 =====
 
 func _on_buy(ing_id: StringName) -> void:
 	var qty := int(_ing_rows[ing_id]["spin"].value)
@@ -166,12 +207,18 @@ func _on_buy(ing_id: StringName) -> void:
 	_refresh()
 
 
-# ===== 4.3 生产交互 =====
+# ===== 即时生产交互（4.1） =====
 
 func _on_produce(recipe_id: StringName) -> void:
-	var want := int(_recipe_rows[recipe_id]["spin"].value)
-	var made: int = _session.request_produce(recipe_id, want)
-	_feedback_label.text = "生产 %s：请求 %d → 实做 %d 份" % [recipe_id, want, made]
+	if _session.is_buffer_full():
+		_feedback_label.text = "出餐台已满（%d/%d），请先上架或退料" % [
+			_session.get_buffer_items().size(), _session.get_buffer_capacity()]
+		return
+	var ok: bool = _session.request_produce_one(recipe_id)
+	if ok:
+		_feedback_label.text = "已生产一份 %s → 出餐台" % _name_of(recipe_id)
+	else:
+		_feedback_label.text = "生产失败：食材不足或出餐台已满"
 	_refresh()
 
 
@@ -185,12 +232,44 @@ func _refresh() -> void:
 	_cash_label.text = "现金：¥%.2f" % _session.get_cash()
 	for id in _ing_rows:
 		_update_ing_row(id)
+	var full: bool = _session.is_buffer_full()
 	for id in _recipe_rows:
 		var row = _recipe_rows[id]
 		var maxs: int = _session.get_max_servings(id)
 		var made: int = _session.get_finished_count(id)
 		row["name"].text = "%s  可做上限:%d  已备:%d" % [row["recipe"].display_name, maxs, made]
-		row["produce"].disabled = maxs <= 0  # 4.3 可做份数为 0 时禁用
+		# 4.1 出餐台满或料不足禁用并提示
+		row["produce"].disabled = maxs <= 0 or full
+	_rebuild_containers()
+
+
+func _rebuild_containers() -> void:
+	# 出餐台
+	var items: Array = _session.get_buffer_items()
+	_buffer_title.text = "— 出餐台（%d / %d）拖成品到货架空格=上架，拖到垃圾桶=退料 —" % [
+		items.size(), _session.get_buffer_capacity()]
+	for c in _buffer_box.get_children():
+		c.queue_free()
+	for i in items.size():
+		var it: Dictionary = items[i]
+		var w: PW.BufferItem = PW.BufferItem.new()
+		w.setup(_session, i, it.get("recipe_id", &""), _name_of(it.get("recipe_id", &"")))
+		_buffer_box.add_child(w)
+	if items.is_empty():
+		var l := Label.new()
+		l.text = "（出餐台空）"
+		_buffer_box.add_child(l)
+
+	# 货架
+	var shelf: Array = _session.get_shelf_items()
+	for c in _shelf_grid.get_children():
+		c.queue_free()
+	for i in shelf.size():
+		var cell = shelf[i]
+		var occ := "" if cell == null else _name_of(cell.get("recipe_id", &""))
+		var sc: PW.ShelfCell = PW.ShelfCell.new()
+		sc.setup(_session, i, occ)
+		_shelf_grid.add_child(sc)
 
 
 func _update_ing_row(ing_id: StringName) -> void:

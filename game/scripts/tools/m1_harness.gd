@@ -56,7 +56,7 @@ func _run_day(state: RunState, day: int, buy_plan: Dictionary, produce_plan: Dic
 
 	state.reset_daily_stats()
 	print("\n──────── Day %d ────────" % day)
-	print("[开局] 现金=%.1f  库存=%s  成品=%d" % [state.cash, _fmt_stock(state), state.finished_sushi.size()])
+	print("[开局] 现金=%.1f  库存=%s  成品=%d" % [state.cash, _fmt_stock(state), _finished_total(state)])
 
 	# —— 决策阶段：采购 ——
 	for ing_id in buy_plan.keys():
@@ -69,17 +69,19 @@ func _run_day(state: RunState, day: int, buy_plan: Dictionary, produce_plan: Dic
 	if illegal:
 		push_error("[BUG] 模拟阶段竟允许采购！")
 
-	# —— 决策阶段：生产 ——
+	# —— 决策阶段：备货即时生产（受出餐台容量约束）→ 边产边上架到货架 ——
 	for rid in produce_plan.keys():
 		var want: int = produce_plan[rid]
 		var recipe := _find_recipe(recipes, rid)
-		var made := Production.produce(state, recipe, want, DC.Phase.DECISION)
-		print("[生产] %s 请求%d → 实做%d 份" % [rid, want, made])
+		var made := _produce_and_stock(state, recipe, want)
+		print("[生产] %s 请求%d → 实做%d 份（出餐台容量=%d, 货架=%d格）" % [
+			rid, want, made, state.buffer_capacity, state.shelf_slot_count()])
 
-	print("[开摊前] 现金=%.1f  库存=%s  成品=%d" % [state.cash, _fmt_stock(state), state.finished_sushi.size()])
+	print("[开摊前] 现金=%.1f  库存=%s  货架=%d 出餐台=%d" % [
+		state.cash, _fmt_stock(state), state.shelf_used_count(), state.buffer_count()])
 	var cash_before_sales := state.cash
 
-	# —— 模拟阶段：按 tick 售卖 ——
+	# —— 模拟阶段：按 tick 售卖（仅卖货架成品）——
 	var sales := Sales.new(recipes, _rng)
 	for t in range(1, DC.TICKS_PER_DAY + 1):
 		sales.process_tick(state, loc, t, DC.TICKS_PER_DAY)
@@ -117,7 +119,6 @@ func _connect_events() -> void:
 
 
 # ============ 内联占位内容（同 content-manifest.md）============
-
 func _build_content() -> Dictionary:
 	var ings := {
 		&"salmon": _ing(&"salmon", "三文鱼", 8.0, 300.0, Ingredient.Category.MAIN),
@@ -204,6 +205,34 @@ func _cw(ctype: CustomerType, weight: float) -> CustomerWeight:
 
 
 # ============ 辅助打印 ============
+
+## 边产边上架：反复即时生产一份到出餐台并上架到货架，直到达到 want 份或无法继续
+## （食材不足 / 货架已满且出餐台已满）。返回实际产出份数。
+func _produce_and_stock(state: RunState, recipe: Recipe, want: int) -> int:
+	var made := 0
+	while made < want:
+		if state.is_buffer_full():
+			_shelve_all(state)
+			if state.is_buffer_full():
+				break  # 货架也满，无法再腾出出餐台
+		if not state.produce_instant(recipe):
+			break  # 食材不足或出餐台满
+		made += 1
+	_shelve_all(state)
+	return made
+
+
+## 把出餐台成品尽量搬到货架空格
+func _shelve_all(state: RunState) -> void:
+	while state.buffer_count() > 0 and state.has_empty_shelf_slot():
+		if not state.stock_buffer_to_shelf(0):
+			break
+
+
+## 出餐台 + 货架成品总份数
+func _finished_total(state: RunState) -> int:
+	return state.buffer_count() + state.shelf_used_count()
+
 
 func _find_recipe(recipes: Array[Recipe], id: StringName) -> Recipe:
 	for r in recipes:
